@@ -27,16 +27,23 @@ if __name__ == "__main__":
         sigma = st.number_input("Volatility (σ)", value=0.20)
 
     if st.button("Add"):
-        result = monte_carlo(S, K, T, r, t, sigma, 300000, seed=42)
-        st.session_state.latest_result = {"S": S, "m_c": result["m_c"]}
+        st.session_state.latest_result = {"S": S, "K": K, "T":T,"r":r,"t":t,"sigma":sigma}
 
     # Only redraw the figure if the data actually changed
     if st.session_state.latest_result is not None:
+
         if st.session_state.latest_result != st.session_state.last_plotted:
             fig, ax = plt.subplots()
-            ax.scatter(st.session_state.latest_result["S"], st.session_state.latest_result["m_c"])
+
+            if st.toggle("Call"):
+                resultc = call(st.session_state.latest_result["S": S],st.session_state.latest_result["K": K],st.session_state.latest_result["T":T],st.session_state.latest_result["r":r],st.session_state.latest_result["t":t],st.session_state.latest_result["sigma":sigma])
+                ax.scatter(st.session_state.latest_result["S": S],resultc,c="b")
+
+            if st.toggle("Put"):
+                resultp = call(st.session_state.latest_result["S": S],st.session_state.latest_result["K": K],st.session_state.latest_result["T":T],st.session_state.latest_result["r":r],st.session_state.latest_result["t":t],st.session_state.latest_result["sigma":sigma])
+                ax.scatter(st.session_state.latest_result["S": S],resultp,c="r")
             ax.set_xlabel("Spot Price")
-            ax.set_ylabel("Option Price")
+            ax.set_ylabel("Option Price ")
             st.session_state.fig = fig
             st.session_state.last_plotted = st.session_state.latest_result
 
