@@ -1,18 +1,16 @@
-from src.monte_carlo import monte_carlo,monte_carlo_anti
+from src.monte_carlo import monte_carlo, monte_carlo_anti
+from src.black_scholes import call, put, greeks_op, greeks_val
 import streamlit as st
-from src.black_scholes import call,put,greeks_op,greeks_val
 import matplotlib.pyplot as plt
+
 if __name__ == "__main__":
-    st.header("Option Pricer") 
+    st.header("Option Pricer")
     st.subheader("Analytical Method")
+
     if "latest_result" not in st.session_state:
         st.session_state.latest_result = None
-    if "last_plotted" not in st.session_state:
-        st.session_state.last_plotted = None
-    if "fig" not in st.session_state:
-        st.session_state.fig = None
 
-    col1, col2, col3, col4,col5,col6 = st.columns(6)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     with col1:
         S = st.number_input("Spot (S)", value=100.0)
     with col2:
@@ -22,29 +20,33 @@ if __name__ == "__main__":
     with col4:
         r = st.number_input("Risk-free rate (r)", value=0.05)
     with col5:
-        t = st.number_input("Dividend yield", value=0.0)
+        q = st.number_input("Dividend yield", value=0.0)
     with col6:
         sigma = st.number_input("Volatility (σ)", value=0.20)
 
+    show_call = st.toggle("Call")
+    show_put = st.toggle("Put")
+
     if st.button("Add"):
-        st.session_state.latest_result = {"S": S, "K": K, "T":T,"r":r,"t":t,"sigma":sigma}
+        st.session_state.latest_result = {
+            "S": S, "K": K, "T": T, "r": r, "q": q, "sigma": sigma
+        }
 
-    # Only redraw the figure if the data actually changed
     if st.session_state.latest_result is not None:
+        p = st.session_state.latest_result
+        fig, ax = plt.subplots()
 
-        if st.session_state.latest_result != st.session_state.last_plotted:
-            fig, ax = plt.subplots()
+        if show_call:
+            resultc = call(p["S"], p["K"], p["T"], p["r"], p["q"], p["sigma"])
+            ax.scatter(p["S"], resultc, c="b", label="Call")
 
-            if st.toggle("Call"):
-                resultc = call(st.session_state.latest_result["S": S],st.session_state.latest_result["K": K],st.session_state.latest_result["T":T],st.session_state.latest_result["r":r],st.session_state.latest_result["t":t],st.session_state.latest_result["sigma":sigma])
-                ax.scatter(st.session_state.latest_result["S": S],resultc,c="b")
+        if show_put:
+            resultp = put(p["S"], p["K"], p["T"], p["r"], p["q"], p["sigma"])
+            ax.scatter(p["S"], resultp, c="r", label="Put")
 
-            if st.toggle("Put"):
-                resultp = call(st.session_state.latest_result["S": S],st.session_state.latest_result["K": K],st.session_state.latest_result["T":T],st.session_state.latest_result["r":r],st.session_state.latest_result["t":t],st.session_state.latest_result["sigma":sigma])
-                ax.scatter(st.session_state.latest_result["S": S],resultp,c="r")
-            ax.set_xlabel("Spot Price")
-            ax.set_ylabel("Option Price ")
-            st.session_state.fig = fig
-            st.session_state.last_plotted = st.session_state.latest_result
+        ax.set_xlabel("Spot Price")
+        ax.set_ylabel("Option Price")
+        if show_call or show_put:
+            ax.legend()
 
-        st.pyplot(st.session_state.fig)
+        st.pyplot(fig)
